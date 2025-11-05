@@ -15,14 +15,17 @@ namespace ntp1
 
             IPEndPoint ntpReference = new IPEndPoint(Dns.GetHostAddresses(ntpServer)[0], 123);
 
-            UdpClient client = new UdpClient();
-            client.Connect(ntpReference);
 
-            client.Send(timeMessage, timeMessage.Length);
-            timeMessage = client.Receive(ref ntpReference);
+            using (UdpClient client = new UdpClient())
+            {
+                client.Connect(ntpReference);
+
+                client.Send(timeMessage, timeMessage.Length);
+                timeMessage = client.Receive(ref ntpReference);
+                client.Close();
+            }
             DateTime ntpTime = NtpPacket.ToDateTime(timeMessage);
-            client.Close();
-
+            
             Console.WriteLine($"Heure actuelle : {ntpTime.ToLongDateString()}");
             Console.WriteLine($"Heure actuelle : {ntpTime}");
             Console.WriteLine($"Heure actuelle : {ntpTime.ToShortDateString()}");
