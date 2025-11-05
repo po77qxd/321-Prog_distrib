@@ -21,13 +21,28 @@ namespace ntp1
             client.Send(timeMessage, timeMessage.Length);
             timeMessage = client.Receive(ref ntpReference);
             DateTime ntpTime = NtpPacket.ToDateTime(timeMessage);
+            client.Close();
 
             Console.WriteLine($"Heure actuelle : {ntpTime.ToLongDateString()}");
             Console.WriteLine($"Heure actuelle : {ntpTime}");
             Console.WriteLine($"Heure actuelle : {ntpTime.ToShortDateString()}");
 
             Console.WriteLine($"Heure actuelle : {ntpTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}");
-            client.Close();
+
+
+            TimeSpan timeDiff = DateTime.UtcNow - ntpTime;
+            Console.WriteLine($"Différence de temps entre local et ntp: { timeDiff.TotalSeconds }");
+
+            DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(ntpTime, TimeZoneInfo.Local);
+            Console.WriteLine($"Heure locale: {localTime}");
+
+            TimeZoneInfo swissTimeZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+            DateTime swissTime = TimeZoneInfo.ConvertTimeFromUtc(ntpTime, swissTimeZone);
+            Console.WriteLine($"Heure suisse : {swissTime}");
+
+            TimeZoneInfo utcTimeZone = TimeZoneInfo.Utc;
+            DateTime backToUtc = TimeZoneInfo.ConvertTime(localTime, TimeZoneInfo.Local, utcTimeZone);
+            Console.WriteLine($"Retour vers UTC : {backToUtc}");
         }
     }
 
