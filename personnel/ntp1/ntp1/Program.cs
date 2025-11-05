@@ -43,7 +43,7 @@ namespace ntp1
                     }
                 } catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    Console.WriteLine(ex.Message);
                 }
 
             });
@@ -70,6 +70,26 @@ namespace ntp1
             TimeZoneInfo utcTimeZone = TimeZoneInfo.Utc;
             DateTime backToUtc = TimeZoneInfo.ConvertTime(localTime, TimeZoneInfo.Local, utcTimeZone);
             Console.WriteLine($"Retour vers UTC : {backToUtc}");
+
+            DisplayWorldClocks(ntpTime);
+        }
+
+        public static void DisplayWorldClocks(DateTime utcTime)
+        {
+            var timeZones = new[]
+            {
+                ("UTC", TimeZoneInfo.Utc),
+                ("New York", TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time")),
+                ("London", TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time")),
+                ("Tokyo", TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time")),
+                ("Sydney", TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time"))
+            };
+
+            foreach (var (name, tz) in timeZones)
+            {
+                var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, tz);
+                Console.WriteLine($"{name}: {localTime:yyyy-MM-dd HH:mm:ss}");
+            }
         }
     }
 
