@@ -8,22 +8,46 @@ namespace ntp1
     {
         static void Main(string[] args)
         {
-            string ntpServer = "0.ch.pool.ntp.org";
+            string[] ntpServers = {
+                "0.pool.ntp.org",
+                "1.pool.ntp.org",
+                "time.google.com",
+                "time.cloudflare.com"
+            };
 
             byte[] timeMessage = new byte[48];
             timeMessage[0] = 0x1B; //LI = 0 (no warning), VN = 3 (IPv4 only), Mode = 3 (Client Mode)
 
-            IPEndPoint ntpReference = new IPEndPoint(Dns.GetHostAddresses(ntpServer)[0], 123);
+            List<IPEndPoint> ntpReferences = new List<IPEndPoint> { };
 
-
-            using (UdpClient client = new UdpClient())
+            foreach (string server in ntpServers)
             {
-                client.Connect(ntpReference);
-
-                client.Send(timeMessage, timeMessage.Length);
-                timeMessage = client.Receive(ref ntpReference);
-                client.Close();
+                ntpReferences.Add(new IPEndPoint(Dns.GetHostAddresses(server)[0], 123));
             }
+
+
+            ntpReferences.ForEach(ntpReference =>
+            {
+
+                try
+                {
+                    using (UdpClient client = new UdpClient())
+                    {
+
+                        client.Client.ReceiveTimeout = 1000;//1sec
+                        client.Connect(ntpReference);
+
+                        client.Send(timeMessage, timeMessage.Length);
+                        timeMessage = client.Receive(ref ntpReference);
+                        client.Close();
+                    }
+                } catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+
+            });
+
             DateTime ntpTime = NtpPacket.ToDateTime(timeMessage);
             
             Console.WriteLine($"Heure actuelle : {ntpTime.ToLongDateString()}");
